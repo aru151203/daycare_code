@@ -40,13 +40,6 @@ export default function ChildSearch({ childrenState, mealPlans, onSelectChild })
     <div style={{ padding: "20px 32px 0" }}>
       {/* Top row */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-        <span style={{ fontSize: 12, color: "#94A3B8" }}>
-          <strong style={{ color: "#2D3436" }}>{childrenState.length} children</strong> checked in today
-          &nbsp;·&nbsp;
-          <span style={{ color: "#EF4444", fontWeight: 600 }}>⚠ {alertCount} alerts</span>
-          &nbsp;·&nbsp;
-          <span style={{ color: "#22C55E", fontWeight: 600 }}>✓ {normalCount} normal</span>
-        </span>
         <div style={{ display: "flex", gap: 6 }}>
           {classrooms.map((room) => (
             <button key={room} onClick={() => setFilter(room)}
@@ -116,9 +109,6 @@ export default function ChildSearch({ childrenState, mealPlans, onSelectChild })
             })}
           </div>
         )}
-      </div>
-      <div style={{ marginTop: 8, fontSize: 11, color: "#94A3B8" }}>
-        Type a name to find a child · filter by classroom above · click to open their profile
       </div>
     </div>
   );

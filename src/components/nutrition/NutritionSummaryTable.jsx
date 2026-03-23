@@ -67,7 +67,7 @@ export default function NutritionSummaryTable({ childrenState, mealPlans, onTogg
                 </button>
               );
             })}
-            <span style={{ fontSize: 10, color: "#94A3B8", marginLeft: "auto" }}>Then untick any child who didn't eat ↓</span>
+
           </div>
 
           {/* Table header */}

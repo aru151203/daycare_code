@@ -84,7 +84,7 @@ export default function NutritionMedical() {
         <div>
           <h2 style={{ fontSize: 22, fontWeight: 800, color: "#2D3436", margin: 0 }}>Nutrition &amp; Health Dashboard</h2>
           <p style={{ fontSize: 13, color: "#94A3B8", margin: "4px 0 0" }}>
-            {childrenState.length} children · Classroom meal plans · Age-based portion sizes &amp; goals (WHO guidelines)
+            
           </p>
         </div>
         <button style={{ display: "flex", alignItems: "center", gap: 7, background: "#fff", border: "1.5px solid #E2D9D1", borderRadius: 20, padding: "7px 16px", fontSize: 13, fontWeight: 600, color: "#2D3436", cursor: "pointer", whiteSpace: "nowrap" }}>
