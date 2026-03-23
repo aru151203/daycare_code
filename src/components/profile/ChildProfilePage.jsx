@@ -1,4 +1,4 @@
-import { MEAL_KEYS, MEAL_META, NUTRIENT_META, SEVERITY_STYLE, STATUS_STYLE, TYPE_ICON, STATUS_OPTIONS } from "../../data/constants.js";
+import { MEAL_KEYS, MEAL_META, NUTRIENT_META } from "../../data/constants.js";
 import { foodNutrients } from "../../data/foodLibrary.js";
 import { getChildNutrition, hasHealthAlerts } from "../../data/helpers.js";
 import MedicalUpdates, { AddMedicalModal } from "../medical/MedicalUpdates.jsx";
@@ -14,7 +14,6 @@ import { useState } from "react";
 export default function ChildProfilePage({ child, mealPlans, medicalUpdates, setMedicalUpdates, onBack, childrenState }) {
   const { goals, consumed, pct, multiplier } = getChildNutrition(child, mealPlans);
   const below       = pct < 50;
-  const childMedical = medicalUpdates.filter((u) => u.childId === child.id);
   const [showModal, setShowModal] = useState(false);
 
   return (
