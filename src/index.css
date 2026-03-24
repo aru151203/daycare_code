@@ -1,13 +1,28 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Brand color variables — use these instead of hardcoding hex values */
+:root {
+  --orange: #ff6d34;
+  --green:  #00bea3;
+  --dark:   #2D3436;
+
+  /* Light tints for backgrounds */
+  --orange-light: #fff3ee;
+  --green-light:  #e6f9f6;
+
+  /* Status colors — keep these minimal: just 3 */
+  --status-good:    #00bea3;
+  --status-warn:    #ff6d34;
+  --status-alert:   #ef4444;
+
+  --status-good-bg:  #e6f9f6;
+  --status-warn-bg:  #fff3ee;
+  --status-alert-bg: #fee2e2;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Make all buttons and inputs use the same font as the page */
+button, input, select, textarea {
+  font-family: inherit;
 }

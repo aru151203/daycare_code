@@ -2,90 +2,195 @@ import { useState } from "react";
 import { MEAL_KEYS, MEAL_META, NUTRIENT_META } from "../../data/constants.js";
 import { FOOD_LIBRARY, foodNutrients } from "../../data/foodLibrary.js";
 
-// Teacher logs food items once per classroom.
-// All children in that classroom share the same food items.
-// Portion sizes are automatically scaled per child based on age (in helpers.js).
-export default function MealPlanLogger({ mealPlans, onUpdate }) {
-  const classrooms   = Object.keys(mealPlans);
-  const [activeRoom, setActiveRoom]   = useState(classrooms[0]);
+// Shows 3 meal columns (Breakfast, Lunch, Snacks) for the selected classroom.
+// Teacher clicks Edit to add or remove food items for each meal.
+// All children in a classroom share the same meal plan.
+// Portions are scaled per child by age — see helpers.js.
+export default function MealPlanLogger({ mealPlans, onUpdate, selectedDate, onDateChange }) {
+  const classrooms = Object.keys(mealPlans);
+  const [activeRoom, setActiveRoom] = useState(classrooms[0]);
   const [editingMeal, setEditingMeal] = useState(null);
-  const [search, setSearch]           = useState("");
+  const [foodSearch, setFoodSearch] = useState("");
+  const [showCalendar, setShowCalendar] = useState(false);
 
-  const plan     = mealPlans[activeRoom];
-  const filtered = FOOD_LIBRARY.filter((f) => f.name.toLowerCase().includes(search.toLowerCase()));
+  // Calendar tracks which month we are viewing
+  const [calendarDate, setCalendarDate] = useState(new Date());
 
-  const toggleFood = (foodId) => {
-    const curr = plan[editingMeal].foods;
-    onUpdate(
-      activeRoom,
-      editingMeal,
-      curr.includes(foodId) ? curr.filter((id) => id !== foodId) : [...curr, foodId]
-    );
-  };
+  const plan = mealPlans[activeRoom];
+  const filteredFoods = FOOD_LIBRARY.filter((f) =>
+    f.name.toLowerCase().includes(foodSearch.toLowerCase())
+  );
+
+  // Add or remove a food from the current meal being edited
+  function toggleFood(foodId) {
+    const currentFoods = plan[editingMeal].foods;
+    const updatedFoods = currentFoods.includes(foodId)
+      ? currentFoods.filter((id) => id !== foodId)
+      : [...currentFoods, foodId];
+    onUpdate(activeRoom, editingMeal, updatedFoods);
+  }
+
+  // Calendar helpers
+  const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const DAY_NAMES = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+  const year = calendarDate.getFullYear();
+  const month = calendarDate.getMonth();
+  const firstDayOfMonth = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const todayStr = new Date().toDateString();
+  const selectedDateStr = new Date(selectedDate).toDateString();
+
+  function handleDayClick(day) {
+    const clicked = new Date(year, month, day);
+    onDateChange(clicked.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }));
+    setShowCalendar(false);
+  }
 
   return (
-    <div style={{ background: "#F8FAFC", borderRadius: 14, padding: "16px 18px", border: "1px solid #F1F5F9", marginBottom: 20 }}>
+    <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 mb-5">
 
-      {/* Title */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-        <span style={{ fontSize: 14 }}>📋</span>
-        <span style={{ fontSize: 13, fontWeight: 700, color: "#2D3436" }}>Classroom Meal Plans</span>
+      {/* Title + calendar button */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm">📋</span>
+          <span className="text-sm font-bold text-gray-800">Classroom Meal Plans</span>
+        </div>
+
+        {/* Calendar date picker */}
+        <div className="relative">
+          <button
+            onClick={() => setShowCalendar((s) => !s)}
+            className="flex items-center gap-2 text-xs text-gray-500 bg-white border border-gray-200 rounded-full px-3 py-1 cursor-pointer"
+          >
+            📅 {selectedDate}
+          </button>
+
+          {/* Calendar popup */}
+          {showCalendar && (
+            <div className="absolute top-full right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-200 p-4 z-50 w-64">
+
+              {/* Month navigation */}
+              <div className="flex items-center justify-between mb-3">
+                <button
+                  onClick={() => setCalendarDate(new Date(year, month - 1, 1))}
+                  className="text-gray-400 bg-transparent border-none cursor-pointer text-base px-1"
+                >‹</button>
+                <span className="text-sm font-bold text-gray-800">{MONTH_NAMES[month]} {year}</span>
+                <button
+                  onClick={() => setCalendarDate(new Date(year, month + 1, 1))}
+                  className="text-gray-400 bg-transparent border-none cursor-pointer text-base px-1"
+                >›</button>
+              </div>
+
+              {/* Day name headers */}
+              <div className="grid grid-cols-7 gap-0.5 mb-1">
+                {DAY_NAMES.map((d) => (
+                  <div key={d} className="text-center text-xs font-bold text-gray-400 py-1">{d}</div>
+                ))}
+              </div>
+
+              {/* Day number grid */}
+              <div className="grid grid-cols-7 gap-0.5">
+                {/* Empty cells before the 1st of the month */}
+                {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+                  <div key={`empty-${i}`} />
+                ))}
+
+                {/* Actual day numbers */}
+                {Array.from({ length: daysInMonth }).map((_, i) => {
+                  const day = i + 1;
+                  const thisDate = new Date(year, month, day);
+                  const isToday = thisDate.toDateString() === todayStr;
+                  const isSelected = thisDate.toDateString() === selectedDateStr && !isToday;
+
+                  return (
+                    <div
+                      key={day}
+                      onClick={() => handleDayClick(day)}
+                      className={`text-center text-xs py-1 rounded cursor-pointer
+                        ${isToday    ? "bg-[#ff6d34] text-white font-bold" : ""}
+                        ${isSelected ? "bg-[#00bea3] text-white font-bold" : ""}
+                        ${!isToday && !isSelected ? "text-gray-700 hover:bg-gray-100" : ""}
+                      `}
+                    >
+                      {day}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="text-xs text-gray-400 mt-2 text-center">
+                🟠 Today &nbsp; 🟢 Selected
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Classroom tabs */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+      <div className="flex gap-2 mb-4">
         {classrooms.map((room) => (
-          <button key={room} onClick={() => { setActiveRoom(room); setEditingMeal(null); }}
-            style={{ fontSize: 11, fontWeight: 700, padding: "5px 14px", borderRadius: 20, cursor: "pointer", border: "none",
-              background: activeRoom === room ? "#2D3436" : "#fff",
-              color:      activeRoom === room ? "#fff"    : "#64748B",
-              boxShadow:  activeRoom === room ? "0 1px 4px rgba(0,0,0,0.12)" : "none" }}>
+          <button
+            key={room}
+            onClick={() => { setActiveRoom(room); setEditingMeal(null); }}
+            className={`text-xs font-bold px-4 py-1.5 rounded-full border-none cursor-pointer
+              ${activeRoom === room ? "bg-gray-800 text-white" : "bg-white text-gray-500"}`}
+          >
             {room}
           </button>
         ))}
       </div>
 
       {/* 3 meal columns */}
-      <div style={{ display: "flex", gap: 10 }}>
+      <div className="flex gap-3">
         {MEAL_KEYS.map((mk) => {
-          const meal      = MEAL_META[mk];
-          const foods     = plan[mk].foods;
+          const meal = MEAL_META[mk];
+          const foods = plan[mk].foods;
           const isEditing = editingMeal === mk;
-          const nutrients = foodNutrients(foods, 1); // full portion for display
+          const nutrients = foodNutrients(foods, 1);
 
           return (
-            <div key={mk} style={{ flex: 1, borderRadius: 12, background: meal.bg, borderTop: `3px solid ${meal.color}`, padding: "12px 14px" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+            <div
+              key={mk}
+              className="flex-1 rounded-xl p-3"
+              style={{ background: meal.bg, borderTop: `3px solid ${meal.color}` }}
+            >
+              {/* Meal header */}
+              <div className="flex items-center justify-between mb-2">
                 <div>
-                  <div style={{ fontSize: 10, color: "#64748B" }}>{meal.time}</div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: meal.color }}>{meal.label}</div>
+                  <div className="text-xs text-gray-400">{meal.time}</div>
+                  <div className="text-sm font-bold" style={{ color: meal.color }}>{meal.label}</div>
                 </div>
-                <button onClick={() => { setEditingMeal(isEditing ? null : mk); setSearch(""); }}
-                  style={{ fontSize: 10, fontWeight: 700, background: "#fff", border: `1px solid ${meal.border}`, color: meal.color, borderRadius: 12, padding: "3px 9px", cursor: "pointer" }}>
+                <button
+                  onClick={() => { setEditingMeal(isEditing ? null : mk); setFoodSearch(""); }}
+                  className="text-xs font-bold bg-white rounded-xl px-2 py-0.5 cursor-pointer"
+                  style={{ color: meal.color, border: `1px solid ${meal.border}` }}
+                >
                   {isEditing ? "Done" : "✏ Edit"}
                 </button>
               </div>
 
               {/* Food tags */}
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 8, minHeight: 22 }}>
+              <div className="flex flex-wrap gap-1 mb-2 min-h-5">
                 {foods.length === 0
-                  ? <span style={{ fontSize: 10, color: "#94A3B8" }}>No items added</span>
+                  ? <span className="text-xs text-gray-400">No items added</span>
                   : foods.map((id) => {
-                      const f = FOOD_LIBRARY.find((x) => x.id === id);
-                      return f ? (
-                        <span key={id} style={{ fontSize: 10, background: "rgba(0,0,0,0.07)", color: "#475569", padding: "2px 7px", borderRadius: 8 }}>
-                          {f.name}
-                        </span>
-                      ) : null;
-                    })}
+                      const food = FOOD_LIBRARY.find((x) => x.id === id);
+                      return food
+                        ? <span key={id} className="text-xs bg-black/10 text-gray-600 px-2 py-0.5 rounded-lg">{food.name}</span>
+                        : null;
+                    })
+                }
               </div>
 
-              {/* Nutrient totals at full portion */}
-              <div style={{ display: "flex", gap: 4 }}>
+              {/* Nutrient totals for this meal */}
+              <div className="flex gap-1">
                 {Object.entries(NUTRIENT_META).map(([k, meta]) => (
-                  <div key={k} style={{ flex: 1, textAlign: "center", background: "rgba(255,255,255,0.7)", borderRadius: 6, padding: "3px 2px" }}>
-                    <div style={{ fontSize: 9, color: "#94A3B8" }}>{meta.label.slice(0, 3)}</div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: meta.color }}>{nutrients[k]}g</div>
+                  <div key={k} className="flex-1 text-center bg-white/70 rounded py-0.5">
+                    <div className="text-gray-400" style={{ fontSize: 9 }}>{meta.label.slice(0, 3)}</div>
+                    <div className="text-xs font-bold" style={{ color: meta.color }}>{nutrients[k]}g</div>
                   </div>
                 ))}
               </div>
@@ -95,38 +200,51 @@ export default function MealPlanLogger({ mealPlans, onUpdate }) {
       </div>
 
       {/* Age portion legend */}
-      <div style={{ marginTop: 10, display: "flex", gap: 6 }}>
+      <div className="flex gap-2 mt-3 flex-wrap">
         {[
-          { label: "Age 1–3 yrs", mult: "60%", color: "#E0F7F4" },
-          { label: "Age 4–5 yrs", mult: "80%", color: "#EDE9FE" },
-          { label: "Age 6+ yrs",  mult: "100%", color: "#DCFCE7" },
-        ].map((a) => (
-          <span key={a.label} style={{ fontSize: 10, background: a.color, color: "#475569", padding: "3px 10px", borderRadius: 10, fontWeight: 600 }}>
-            {a.label} → {a.mult} portion
+          "Age 1–3 yrs → 60% portion",
+          "Age 4–5 yrs → 80% portion",
+          "Age 6+ yrs  → 100% portion",
+        ].map((label) => (
+          <span key={label} className="text-xs text-gray-600 font-semibold px-3 py-1 rounded-lg bg-gray-100">
+            {label}
           </span>
         ))}
-        <span style={{ fontSize: 10, color: "#94A3B8", alignSelf: "center", marginLeft: 4 }}>Nutrient goals also scale by age</span>
+        <span className="text-xs text-gray-400 self-center ml-1">Nutrient goals also scale by age</span>
       </div>
 
-      {/* Food picker (shown when editing a meal) */}
+      {/* Food picker — shown when editing a meal */}
       {editingMeal && (
-        <div style={{ marginTop: 12, background: "#fff", borderRadius: 12, border: "1px solid #E2E8F0", overflow: "hidden" }}>
-          <div style={{ padding: "10px 14px", borderBottom: "1px solid #F1F5F9" }}>
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="🔍  Search food..."
-              style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1.5px solid #E2E8F0", fontSize: 12, outline: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
+        <div className="mt-3 bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="p-3 border-b border-gray-100">
+            <input
+              value={foodSearch}
+              onChange={(e) => setFoodSearch(e.target.value)}
+              placeholder="🔍 Search food..."
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs outline-none"
+            />
           </div>
-          <div style={{ padding: "10px 14px", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, maxHeight: 180, overflowY: "auto" }}>
-            {filtered.map((food) => {
-              const selected = plan[editingMeal].foods.includes(food.id);
+          <div className="p-3 grid grid-cols-4 gap-1.5 max-h-44 overflow-y-auto">
+            {filteredFoods.map((food) => {
+              const isSelected = plan[editingMeal].foods.includes(food.id);
               return (
-                <div key={food.id} onClick={() => toggleFood(food.id)}
-                  style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", borderRadius: 8, cursor: "pointer",
-                    background: selected ? "#F0FDF4" : "#F8FAFC",
-                    border: `1px solid ${selected ? "#86EFAC" : "#F1F5F9"}` }}>
-                  <div style={{ width: 13, height: 13, borderRadius: 3, border: `2px solid ${selected ? "#22C55E" : "#CBD5E1"}`, background: selected ? "#22C55E" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    {selected && <span style={{ color: "#fff", fontSize: 8, fontWeight: 700 }}>✓</span>}
+                <div
+                  key={food.id}
+                  onClick={() => toggleFood(food.id)}
+                  className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg cursor-pointer border text-xs
+                    ${isSelected ? "bg-[#e6f9f6] border-[#9ee6dc]" : "bg-gray-50 border-gray-100"}`}
+                >
+                  {/* Checkbox */}
+                  <div
+                    className="w-3 h-3 rounded flex items-center justify-center flex-shrink-0 border-2"
+                    style={{
+                      background: isSelected ? "#00bea3" : "#fff",
+                      borderColor: isSelected ? "#00bea3" : "#d1d5db"
+                    }}
+                  >
+                    {isSelected && <span className="text-white font-bold" style={{ fontSize: 8 }}>✓</span>}
                   </div>
-                  <span style={{ fontSize: 11, color: "#2D3436", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{food.name}</span>
+                  <span className="text-gray-800 truncate">{food.name}</span>
                 </div>
               );
             })}

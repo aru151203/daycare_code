@@ -1,111 +1,145 @@
 import { useState } from "react";
 import { hasHealthAlerts } from "../../data/helpers.js";
 
-// ─── ClassroomGroup ───────────────────────────────────────────────────────────
-// One collapsible section per classroom in the Health Status panel.
-// Collapsed by default — click ▼ to expand children list.
-// Per child row:
-//   • Click child NAME  → navigates to their profile (setSelectedChild)
-//   • Click ▼ ARROW     → expands vitals for inline editing (separate state)
-// Teacher can type a new value or toggle Good/Attention per vital.
-export function ClassroomGroup({ classroom, children, selectedChild, setSelectedChild, onUpdateHealth }) {
-  const alertCount     = children.filter(hasHealthAlerts).length;
-  const [open, setOpen]               = useState(false);
-  const [expandedVitals, setExpandedVitals] = useState(null); // separate from profile nav
+// One collapsible section per classroom.
+// Click the classroom header to expand and see children.
+// Click a child name → goes to their profile page.
+// Click the ▼ arrow on a child row → shows editable vitals inline.
+export function ClassroomGroup({ classroom, children, setSelectedChild, onUpdateHealth }) {
+  const alertCount = children.filter(hasHealthAlerts).length;
+  const [isOpen, setIsOpen] = useState(false);
+  const [expandedChild, setExpandedChild] = useState(null);
 
   return (
-    <div style={{ borderRadius: 14, border: `1.5px solid ${alertCount > 0 ? "#FECDD3" : "#E2E8F0"}`, overflow: "hidden", marginBottom: 12 }}>
+    <div className={`rounded-xl border overflow-hidden mb-3 ${alertCount > 0 ? "border-red-200" : "border-gray-200"}`}>
 
-      {/* Classroom header row */}
-      <div onClick={() => setOpen((o) => !o)}
-        style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", cursor: "pointer",
-          background: alertCount > 0 ? "#FFF8F8" : "#F8FAFC",
-          borderBottom: open ? `1px solid ${alertCount > 0 ? "#FECDD3" : "#E2E8F0"}` : "none" }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#2D3436" }}>{classroom}</div>
-          <div style={{ fontSize: 11, color: "#94A3B8" }}>{children.length} students</div>
+      {/* Classroom header — click to expand/collapse */}
+      <div
+        onClick={() => setIsOpen((prev) => !prev)}
+        className={`flex items-center gap-3 px-4 py-3 cursor-pointer ${alertCount > 0 ? "bg-red-50" : "bg-gray-50"}`}
+        style={{ borderBottom: isOpen ? "1px solid #e5e7eb" : "none" }}
+      >
+        <div className="flex-1">
+          <div className="text-sm font-bold text-gray-800">{classroom}</div>
+          <div className="text-xs text-gray-400">{children.length} students</div>
         </div>
-        <div style={{ display: "flex", gap: 6 }}>
+
+        {/* Alert and good counts */}
+        <div className="flex gap-2">
           {alertCount > 0 && (
-            <span style={{ fontSize: 11, fontWeight: 700, background: "#FEE2E2", color: "#DC2626", padding: "3px 10px", borderRadius: 20, border: "1px solid #FCA5A5" }}>
+            <span className="text-xs font-bold bg-red-100 text-red-500 px-3 py-1 rounded-full border border-red-200">
               ⚠ {alertCount} alert{alertCount > 1 ? "s" : ""}
             </span>
           )}
-          <span style={{ fontSize: 11, fontWeight: 700, background: "#DCFCE7", color: "#15803D", padding: "3px 10px", borderRadius: 20, border: "1px solid #BBF7D0" }}>
+          <span className="text-xs font-bold bg-[#e6f9f6] text-[#00bea3] px-3 py-1 rounded-full border border-[#9ee6dc]">
             ✓ {children.length - alertCount} good
           </span>
         </div>
-        <span style={{ fontSize: 11, color: "#94A3B8", display: "inline-block", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+
+        {/* Rotate arrow when open */}
+        <span
+          className="text-xs text-gray-400 inline-block transition-transform"
+          style={{ transform: isOpen ? "rotate(180deg)" : "none" }}
+        >▼</span>
       </div>
 
-      {/* Children list */}
-      {open && (
-        <div style={{ padding: "10px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
+      {/* Children list — shown when classroom is expanded */}
+      {isOpen && (
+        <div className="p-3 flex flex-col gap-2">
           {children.map((child) => {
-            const isExpanded = expandedVitals === child.id;
-            const alerts     = hasHealthAlerts(child);
+            const isVitalsOpen = expandedChild === child.id;
+            const hasAlerts = hasHealthAlerts(child);
 
             return (
               <div key={child.id}>
                 {/* Child row */}
-                <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 10,
-                  background: isExpanded ? `${child.avatarBg}10` : "#fff",
-                  border: `1.5px solid ${isExpanded ? child.avatarBg : alerts ? "#FECDD3" : "#F1F5F9"}` }}>
-
-                  {/* Name → profile */}
-                  <div onClick={() => setSelectedChild(child.id)}
-                    style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, cursor: "pointer" }}>
-                    <div style={{ width: 26, height: 26, borderRadius: "50%", background: child.avatarBg, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 11, flexShrink: 0 }}>
+                <div
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl"
+                  style={{
+                    background: isVitalsOpen ? "#e6f9f6" : "#fff",
+                    border: `1.5px solid ${isVitalsOpen ? "#00bea3" : hasAlerts ? "#fecdd3" : "#f3f4f6"}`
+                  }}
+                >
+                  {/* Child name — click to go to profile */}
+                  <div
+                    onClick={() => setSelectedChild(child.id)}
+                    className="flex items-center gap-2 flex-1 cursor-pointer"
+                  >
+                    {/* All avatars use brand green */}
+                    <div className="w-7 h-7 rounded-full bg-[#00bea3] text-white flex items-center justify-center font-bold flex-shrink-0" style={{ fontSize: 11 }}>
                       {child.name[0]}
                     </div>
                     <div>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "#00bea3", textDecoration: "underline", textDecorationStyle: "dotted" }}>{child.name}</div>
-                      <div style={{ fontSize: 10, color: "#94A3B8" }}>{child.age}</div>
+                      <div className="text-xs font-bold text-[#00bea3] underline decoration-dotted">
+                        {child.name}
+                      </div>
+                      <div className="text-xs text-gray-400">{child.age}</div>
                     </div>
                   </div>
 
-                  {/* Vital dots */}
-                  <div style={{ display: "flex", gap: 4 }}>
-                    {Object.entries(child.health).map(([k, v]) => (
-                      <span key={k} title={`${v.label}: ${v.value}`}
-                        style={{ width: 8, height: 8, borderRadius: "50%", display: "inline-block", background: v.ok ? "#22C55E" : "#EF4444" }} />
+                  {/* Vital status dots: green = ok, red = alert */}
+                  <div className="flex gap-1">
+                    {Object.entries(child.health).map(([key, vital]) => (
+                      <span
+                        key={key}
+                        title={`${vital.label}: ${vital.value}`}
+                        className="w-2 h-2 rounded-full inline-block"
+                        style={{ background: vital.ok ? "#00bea3" : "#ef4444" }}
+                      />
                     ))}
                   </div>
 
                   {/* Status badge */}
-                  {alerts
-                    ? <span style={{ fontSize: 10, fontWeight: 700, background: "#FEE2E2", color: "#DC2626", padding: "2px 8px", borderRadius: 8, border: "1px solid #FCA5A5" }}>⚠ Attention</span>
-                    : <span style={{ fontSize: 10, fontWeight: 700, background: "#DCFCE7", color: "#15803D", padding: "2px 8px", borderRadius: 8, border: "1px solid #BBF7D0" }}>✓ Good</span>}
+                  {hasAlerts
+                    ? <span className="text-xs font-bold bg-red-100 text-red-500 px-2 py-0.5 rounded-lg border border-red-200">⚠ Attention</span>
+                    : <span className="text-xs font-bold bg-[#e6f9f6] text-[#00bea3] px-2 py-0.5 rounded-lg border border-[#9ee6dc]">✓ Good</span>
+                  }
 
-                  {/* ▼ arrow → expand vitals */}
-                  <span onClick={() => setExpandedVitals(isExpanded ? null : child.id)}
-                    style={{ fontSize: 11, color: "#94A3B8", cursor: "pointer", padding: "0 4px", display: "inline-block",
-                      transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼
-                  </span>
+                  {/* Arrow to expand/collapse vitals */}
+                  <span
+                    onClick={() => setExpandedChild(isVitalsOpen ? null : child.id)}
+                    className="text-xs text-gray-400 cursor-pointer px-1 inline-block transition-transform"
+                    style={{ transform: isVitalsOpen ? "rotate(180deg)" : "none" }}
+                  >▼</span>
                 </div>
 
-                {/* Editable vitals (expanded inline) */}
-                {isExpanded && (
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginTop: 6, padding: "0 4px 6px" }}>
-                    {Object.entries(child.health).map(([key, v]) => (
-                      <div key={key} style={{ background: "#fff", borderRadius: 10, padding: "10px 12px", border: `1px solid ${v.ok ? "#F1F5F9" : "#FECDD3"}` }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 6 }}>
-                          <span style={{ fontSize: 14 }}>{v.icon}</span>
-                          <span style={{ fontSize: 9, fontWeight: 700, color: "#94A3B8", letterSpacing: "0.05em", flex: 1 }}>{v.label.toUpperCase()}</span>
+                {/* Editable vitals — shown when child row is expanded */}
+                {isVitalsOpen && (
+                  <div className="grid grid-cols-3 gap-1.5 mt-1.5 px-1 pb-1.5">
+                    {Object.entries(child.health).map(([key, vital]) => (
+                      <div
+                        key={key}
+                        className="bg-white rounded-xl p-3"
+                        style={{ border: `1px solid ${vital.ok ? "#f3f4f6" : "#fecdd3"}` }}
+                      >
+                        <div className="flex items-center gap-1 mb-2">
+                          <span className="text-sm">{vital.icon}</span>
+                          <span className="text-gray-400 font-bold flex-1 tracking-wide" style={{ fontSize: 9 }}>
+                            {vital.label.toUpperCase()}
+                          </span>
                         </div>
-                        {/* Editable value — teacher types new reading */}
-                        <input value={v.value}
+
+                        {/* Teacher types in the new value */}
+                        <input
+                          value={vital.value}
                           onChange={(e) => onUpdateHealth(child.id, key, "value", e.target.value)}
                           onClick={(e) => e.stopPropagation()}
-                          style={{ width: "100%", fontSize: 13, fontWeight: 700, color: v.ok ? "#2D3436" : "#DC2626", border: "1.5px solid #E2E8F0", borderRadius: 8, padding: "5px 8px", outline: "none", fontFamily: "inherit", boxSizing: "border-box", marginBottom: 6 }} />
-                        {/* Good / Attention toggle */}
-                        <div style={{ display: "flex", alignItems: "center", gap: 6 }} onClick={(e) => e.stopPropagation()}>
-                          <span style={{ fontSize: 10, color: "#64748B" }}>Status:</span>
-                          <button onClick={() => onUpdateHealth(child.id, key, "ok", !v.ok)}
-                            style={{ fontSize: 10, fontWeight: 700, padding: "2px 10px", borderRadius: 8, border: "none", cursor: "pointer",
-                              background: v.ok ? "#DCFCE7" : "#FEE2E2",
-                              color:      v.ok ? "#15803D" : "#DC2626" }}>
-                            {v.ok ? "✓ Good" : "⚠ Attention"}
+                          className="w-full text-sm font-bold border border-gray-200 rounded-lg px-2 py-1 outline-none mb-1.5 box-border"
+                          style={{ color: vital.ok ? "#1f2937" : "#ef4444" }}
+                        />
+
+                        {/* Toggle between Good and Attention */}
+                        <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                          <span className="text-xs text-gray-400">Status:</span>
+                          <button
+                            onClick={() => onUpdateHealth(child.id, key, "ok", !vital.ok)}
+                            className="text-xs font-bold px-2 py-0.5 rounded-lg border-none cursor-pointer"
+                            style={{
+                              background: vital.ok ? "#e6f9f6" : "#fee2e2",
+                              color: vital.ok ? "#00bea3" : "#ef4444"
+                            }}
+                          >
+                            {vital.ok ? "✓ Good" : "⚠ Attention"}
                           </button>
                         </div>
                       </div>
@@ -121,34 +155,35 @@ export function ClassroomGroup({ classroom, children, selectedChild, setSelected
   );
 }
 
-// ─── HealthStatusPanel ────────────────────────────────────────────────────────
-// Groups all children by classroom. Each group is collapsed by default.
+// Main component — groups all children by classroom
 export default function HealthStatusPanel({ childrenState, selectedChild, setSelectedChild, onUpdateHealth }) {
-  const classrooms  = [...new Set(childrenState.map((c) => c.classroom))];
+  const classrooms = [...new Set(childrenState.map((c) => c.classroom))];
   const totalAlerts = childrenState.filter(hasHealthAlerts).length;
 
   return (
-    <div style={{ borderRadius: 18, background: "#fff", boxShadow: "0 1px 6px rgba(0,0,0,0.06)", padding: "22px 24px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontSize: 24 }}>💚</span>
+    <div className="bg-white rounded-2xl p-6 shadow-sm">
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">💚</span>
           <div>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "#94A3B8", letterSpacing: "0.08em" }}>VITALS &amp; WELLNESS</div>
-            <div style={{ fontSize: 17, fontWeight: 700, color: "#2D3436" }}>Health Status</div>
+            <div className="text-xs font-bold text-gray-400 tracking-widest">VITALS &amp; WELLNESS</div>
+            <div className="text-lg font-bold text-gray-800">Health Status</div>
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+
+        <div className="flex gap-2">
           {totalAlerts > 0 && (
-            <span style={{ fontSize: 11, fontWeight: 700, background: "#FEE2E2", color: "#DC2626", padding: "3px 10px", borderRadius: 20, border: "1px solid #FCA5A5" }}>
+            <span className="text-xs font-bold bg-red-100 text-red-500 px-3 py-1 rounded-full border border-red-200">
               ⚠ {totalAlerts} alert{totalAlerts > 1 ? "s" : ""}
             </span>
           )}
-          <button style={{ background: "#F1F5F9", border: "1px solid #E2E8F0", borderRadius: 20, padding: "6px 14px", fontSize: 12, fontWeight: 600, color: "#475569", cursor: "pointer" }}>
+          <button className="bg-gray-100 border border-gray-200 rounded-full px-4 py-1.5 text-xs font-semibold text-gray-600 cursor-pointer">
             Realtime check
           </button>
         </div>
       </div>
 
+      {/* One collapsible group per classroom */}
       {classrooms.map((room) => (
         <ClassroomGroup
           key={room}

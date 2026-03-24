@@ -4,25 +4,25 @@ import {
   STATUS_OPTIONS, SEVERITY_OPTIONS, TYPE_OPTIONS,
 } from "../../data/constants.js";
 
-// ─── AddMedicalModal ──────────────────────────────────────────────────────────
-// Modal form for teacher to log a new medical incident.
-// Child dropdown auto-fills the name. Supports external children too.
+// Modal form for adding a new medical update
 export function AddMedicalModal({ onClose, onAdd, childrenState }) {
   const [form, setForm] = useState({
     childId: "", child: "", note: "", medicine: "",
     teacher: "", type: "fever", severity: "mild", status: "Active",
   });
 
-  const handleChange = (e) => {
+  // When teacher picks a child from the dropdown, auto-fill their name
+  function handleChange(e) {
     const updated = { ...form, [e.target.name]: e.target.value };
     if (e.target.name === "childId" && e.target.value) {
       const found = childrenState.find((c) => c.id === e.target.value);
       if (found) updated.child = found.name;
     }
     setForm(updated);
-  };
+  }
 
-  const handleSubmit = () => {
+  function handleSubmit() {
+    // Don't submit if required fields are empty
     if (!form.child || !form.note) return;
     onAdd({
       ...form,
@@ -30,132 +30,164 @@ export function AddMedicalModal({ onClose, onAdd, childrenState }) {
       date: new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
     });
     onClose();
-  };
+  }
 
-  const inputStyle = {
-    padding: "10px 14px", borderRadius: 10, border: "1.5px solid #E2E8F0",
-    fontSize: 13, color: "#2D3436", outline: "none",
-    fontFamily: "inherit", background: "#fff", width: "100%",
-  };
+  const inputStyle = "w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 outline-none bg-white";
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999 }}>
-      <div style={{ background: "#fff", borderRadius: 20, padding: "28px 28px 24px", width: 460, boxShadow: "0 20px 60px rgba(0,0,0,0.15)", maxHeight: "90vh", overflowY: "auto" }}>
+    <div className="fixed inset-0 bg-black/35 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl p-7 w-[460px] shadow-2xl max-h-[90vh] overflow-y-auto">
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <span style={{ fontSize: 18, fontWeight: 800, color: "#2D3436" }}>Add Medical Update</span>
-          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", color: "#94A3B8" }}>✕</button>
+        {/* Header */}
+        <div className="flex justify-between items-center mb-5">
+          <span className="text-lg font-extrabold text-gray-800">Add Medical Update</span>
+          <button onClick={onClose} className="text-lg text-gray-400 bg-transparent border-none cursor-pointer">✕</button>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {/* Child selector */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-            <label style={{ fontSize: 12, fontWeight: 700, color: "#64748B" }}>Child</label>
-            <select name="childId" value={form.childId} onChange={handleChange} style={inputStyle}>
+        <div className="flex flex-col gap-3.5">
+
+          {/* Child selector dropdown */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-bold text-gray-500">Child</label>
+            <select name="childId" value={form.childId} onChange={handleChange} className={inputStyle}>
               <option value="">-- Select a child --</option>
               {childrenState.map((c) => (
                 <option key={c.id} value={c.id}>{c.name} ({c.classroom})</option>
               ))}
               <option value="other">Other / External</option>
             </select>
+            {/* Show a text input if "Other" is selected */}
             {(!form.childId || form.childId === "other") && (
-              <input name="child" value={form.child} onChange={handleChange}
-                placeholder="Enter child name" style={{ ...inputStyle, marginTop: 6 }} />
+              <input
+                name="child"
+                value={form.child}
+                onChange={handleChange}
+                placeholder="Enter child name"
+                className={`${inputStyle} mt-1.5`}
+              />
             )}
           </div>
 
-          {/* Text fields */}
+          {/* Note, medicine, teacher fields */}
           {[
             { label: "Note",               name: "note",     placeholder: "e.g. Mild fever after lunch"  },
             { label: "Medicine/Treatment", name: "medicine", placeholder: "e.g. Paracetamol 2.5ml"       },
             { label: "Logged by",          name: "teacher",  placeholder: "e.g. Ms. Priya"               },
-          ].map((f) => (
-            <div key={f.name} style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: "#64748B" }}>{f.label}</label>
-              <input name={f.name} value={form[f.name]} onChange={handleChange}
-                placeholder={f.placeholder} style={inputStyle} />
+          ].map((field) => (
+            <div key={field.name} className="flex flex-col gap-1">
+              <label className="text-xs font-bold text-gray-500">{field.label}</label>
+              <input
+                name={field.name}
+                value={form[field.name]}
+                onChange={handleChange}
+                placeholder={field.placeholder}
+                className={inputStyle}
+              />
             </div>
           ))}
 
-          {/* Type / Severity / Status dropdowns */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+          {/* Type, Severity, Status dropdowns */}
+          <div className="grid grid-cols-3 gap-2.5">
             {[
               { label: "Type",     name: "type",     options: TYPE_OPTIONS.map((t)     => ({ value: t, label: `${TYPE_ICON[t]} ${t.charAt(0).toUpperCase() + t.slice(1)}` })) },
               { label: "Severity", name: "severity", options: SEVERITY_OPTIONS.map((s) => ({ value: s, label: s.charAt(0).toUpperCase() + s.slice(1) })) },
               { label: "Status",   name: "status",   options: STATUS_OPTIONS.map((s)   => ({ value: s, label: s })) },
-            ].map((f) => (
-              <div key={f.name} style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                <label style={{ fontSize: 12, fontWeight: 700, color: "#64748B" }}>{f.label}</label>
-                <select name={f.name} value={form[f.name]} onChange={handleChange} style={inputStyle}>
-                  {f.options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            ].map((field) => (
+              <div key={field.name} className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-gray-500">{field.label}</label>
+                <select name={field.name} value={form[field.name]} onChange={handleChange} className={inputStyle}>
+                  {field.options.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
                 </select>
               </div>
             ))}
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 22 }}>
-          <button onClick={onClose} style={{ background: "#F1F5F9", border: "none", borderRadius: 22, padding: "9px 20px", fontSize: 13, fontWeight: 600, color: "#64748B", cursor: "pointer" }}>Cancel</button>
-          <button onClick={handleSubmit} style={{ background: "#ff6d34", border: "none", borderRadius: 22, padding: "9px 24px", fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer" }}>Add Update</button>
+        {/* Footer */}
+        <div className="flex gap-2 justify-end mt-6">
+          <button onClick={onClose} className="bg-gray-100 border-none rounded-full px-5 py-2 text-sm font-semibold text-gray-500 cursor-pointer">
+            Cancel
+          </button>
+          <button onClick={handleSubmit} className="bg-[#ff6d34] border-none rounded-full px-6 py-2 text-sm font-bold text-white cursor-pointer">
+            Add Update
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-// ─── MedicalUpdateCard ────────────────────────────────────────────────────────
-// Single medical incident entry. Shows type, severity, status, note, treatment.
-// "Update Status" cycles Active → Monitoring → Resolved in one click.
+// Single medical record card
 function MedicalUpdateCard({ update, linkedChild, onUpdateStatus, onDelete }) {
-  const ss = SEVERITY_STYLE[update.severity] || SEVERITY_STYLE.mild;
-  const ts = STATUS_STYLE[update.status]     || STATUS_STYLE.Active;
+  // Look up the style for this card's severity and status
+  const severityStyle = SEVERITY_STYLE[update.severity] || SEVERITY_STYLE.mild;
+  const statusStyle   = STATUS_STYLE[update.status]     || STATUS_STYLE.Active;
 
   return (
-    <div style={{ padding: "14px 16px", background: "#fff", borderRadius: 14, border: `1.5px solid ${ss.border}`, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-        <div style={{ width: 36, height: 36, borderRadius: "50%", background: ss.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 17 }}>
+    <div className="p-4 bg-white rounded-xl shadow-sm" style={{ border: `1.5px solid ${severityStyle.border}` }}>
+
+      <div className="flex items-center gap-3 mb-2.5">
+        {/* Type icon circle */}
+        <div
+          className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-lg"
+          style={{ background: severityStyle.bg }}
+        >
           {TYPE_ICON[update.type] || "🏥"}
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+
+        {/* Child name + date */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
             {linkedChild && (
-              <div style={{ width: 20, height: 20, borderRadius: "50%", background: linkedChild.avatarBg, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 10 }}>
+              <div className="w-5 h-5 rounded-full bg-[#00bea3] text-white flex items-center justify-center font-bold" style={{ fontSize: 10 }}>
                 {linkedChild.name[0]}
               </div>
             )}
-            <span style={{ fontWeight: 700, fontSize: 14, color: "#2D3436" }}>{update.child}</span>
-            <span style={{ fontSize: 11, color: "#94A3B8" }}>{update.date}</span>
+            <span className="font-bold text-sm text-gray-800">{update.child}</span>
+            <span className="text-xs text-gray-400">{update.date}</span>
           </div>
-          <div style={{ fontSize: 11, color: "#64748B", marginTop: 2 }}>Logged by <strong>{update.teacher}</strong></div>
+          <div className="text-xs text-gray-400 mt-0.5">Logged by <strong>{update.teacher}</strong></div>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 5 }}>
-          <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 9px", borderRadius: 10, background: ss.bg, color: ss.color, border: `1px solid ${ss.border}` }}>
+
+        {/* Severity + Status badges stacked on the right */}
+        <div className="flex flex-col items-end gap-1">
+          <span
+            className="text-xs font-bold px-2 py-0.5 rounded-lg"
+            style={{ background: severityStyle.bg, color: severityStyle.color, border: `1px solid ${severityStyle.border}` }}
+          >
             {update.severity.charAt(0).toUpperCase() + update.severity.slice(1)}
           </span>
-          <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 9px", borderRadius: 10, background: ts.bg, color: ts.color, border: `1px solid ${ts.border}` }}>
+          <span
+            className="text-xs font-bold px-2 py-0.5 rounded-lg"
+            style={{ background: statusStyle.bg, color: statusStyle.color, border: `1px solid ${statusStyle.border}` }}
+          >
             {update.status}
           </span>
         </div>
       </div>
 
-      <div style={{ fontSize: 13, color: "#475569", marginBottom: 6, paddingLeft: 46 }}>{update.note}</div>
+      {/* Note text */}
+      <div className="text-sm text-gray-600 mb-1.5 pl-12">{update.note}</div>
+
+      {/* Treatment — only shown if filled in */}
       {update.medicine && (
-        <div style={{ fontSize: 12, color: "#64748B", paddingLeft: 46 }}>
+        <div className="text-xs text-gray-400 pl-12">
           <strong>Treatment:</strong> {update.medicine}
         </div>
       )}
 
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, paddingLeft: 46 }}>
-        <span style={{ fontSize: 11, background: "#F1F5F9", color: "#475569", padding: "2px 10px", borderRadius: 10, border: "1px solid #E2E8F0", fontWeight: 600 }}>
+      {/* Action buttons */}
+      <div className="flex items-center gap-2 mt-2.5 pl-12">
+        <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-lg border border-gray-200 font-semibold">
           {TYPE_ICON[update.type]} {update.type.charAt(0).toUpperCase() + update.type.slice(1)}
         </span>
-        <div style={{ flex: 1 }} />
-        <button onClick={onUpdateStatus}
-          style={{ fontSize: 11, fontWeight: 600, background: "none", border: "1.5px solid #CBD5E1", color: "#475569", padding: "3px 10px", borderRadius: 16, cursor: "pointer" }}>
+        <div className="flex-1" />
+        <button onClick={onUpdateStatus} className="text-xs font-semibold bg-white border border-gray-300 text-gray-600 px-3 py-1 rounded-full cursor-pointer">
           Update Status
         </button>
-        <button onClick={onDelete}
-          style={{ fontSize: 11, fontWeight: 600, background: "#FEE2E2", border: "none", borderRadius: 16, padding: "3px 10px", color: "#DC2626", cursor: "pointer" }}>
+        <button onClick={onDelete} className="text-xs font-semibold bg-red-100 border-none rounded-full px-3 py-1 text-red-500 cursor-pointer">
           Delete
         </button>
       </div>
@@ -163,53 +195,56 @@ function MedicalUpdateCard({ update, linkedChild, onUpdateStatus, onDelete }) {
   );
 }
 
-// ─── MedicalUpdates ───────────────────────────────────────────────────────────
-// Full Medical Updates section — shows all updates (or filtered by child).
-// Used in both main dashboard and child profile page.
+// Full Medical Updates section.
+// filterChildId is optional — if passed, only shows updates for that one child
 export default function MedicalUpdates({ medicalUpdates, setMedicalUpdates, childrenState, filterChildId, onAddClick }) {
   const visible = filterChildId
     ? medicalUpdates.filter((u) => u.childId === filterChildId)
     : medicalUpdates;
 
-  const cycleStatus = (id) => {
-    setMedicalUpdates((prev) => prev.map((u) =>
-      u.id !== id ? u : { ...u, status: STATUS_OPTIONS[(STATUS_OPTIONS.indexOf(u.status) + 1) % STATUS_OPTIONS.length] }
-    ));
-  };
+  // Cycles status: Active → Monitoring → Resolved → Active
+  function cycleStatus(id) {
+    setMedicalUpdates((prev) =>
+      prev.map((update) => {
+        if (update.id !== id) return update;
+        const nextIndex = (STATUS_OPTIONS.indexOf(update.status) + 1) % STATUS_OPTIONS.length;
+        return { ...update, status: STATUS_OPTIONS[nextIndex] };
+      })
+    );
+  }
 
-  const deleteUpdate = (id) => {
+  function deleteUpdate(id) {
     setMedicalUpdates((prev) => prev.filter((u) => u.id !== id));
-  };
+  }
 
   return (
-    <div style={{ background: "#fff", borderRadius: 18, padding: "22px 24px", boxShadow: "0 1px 6px rgba(0,0,0,0.06)" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontSize: 24 }}>🩺</span>
+    <div className="bg-white rounded-2xl p-6 shadow-sm">
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">🩺</span>
           <div>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "#94A3B8", letterSpacing: "0.08em" }}>LOGGED TODAY</div>
-            <div style={{ fontSize: 17, fontWeight: 700, color: "#2D3436" }}>Medical Updates</div>
+            <div className="text-xs font-bold text-gray-400 tracking-widest">LOGGED TODAY</div>
+            <div className="text-lg font-bold text-gray-800">Medical Updates</div>
           </div>
         </div>
-        <button onClick={onAddClick}
-          style={{ background: "#ff6d34", color: "#fff", border: "none", borderRadius: 22, padding: "8px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+        <button onClick={onAddClick} className="bg-[#ff6d34] text-white border-none rounded-full px-4 py-2 text-sm font-semibold cursor-pointer">
           + Add Update
         </button>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div className="flex flex-col gap-2.5">
         {visible.length === 0 && (
-          <div style={{ textAlign: "center", color: "#94A3B8", padding: "24px 0", fontSize: 13 }}>
+          <div className="text-center text-gray-400 py-6 text-sm">
             No medical updates logged today.
           </div>
         )}
-        {visible.map((u) => (
+        {visible.map((update) => (
           <MedicalUpdateCard
-            key={u.id}
-            update={u}
-            linkedChild={childrenState.find((c) => c.id === u.childId)}
-            onUpdateStatus={() => cycleStatus(u.id)}
-            onDelete={() => deleteUpdate(u.id)}
+            key={update.id}
+            update={update}
+            linkedChild={childrenState.find((c) => c.id === update.childId)}
+            onUpdateStatus={() => cycleStatus(update.id)}
+            onDelete={() => deleteUpdate(update.id)}
           />
         ))}
       </div>
