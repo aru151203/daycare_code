@@ -111,8 +111,8 @@ export const INIT_CHILDREN = [
 // severity: mild | moderate | critical
 // status: Active | Monitoring | Resolved  (teacher updates as child improves)
 export const INIT_MEDICAL = [
-  { id: 1, childId: "khushi",   child: "Khushi",   date: "Mar 25, 2026", note: "Mild fever, temp 100.2°F",                  medicine: "Paracetamol (2.5 ml)", teacher: "Mr. Rahul", type: "fever", severity: "critical", status: "Active"     },
-  { id: 2, childId: "aarohi",   child: "Aarohi",   date: "Mar 25, 2026", note: "Dehydration signs, refusing water",         medicine: "ORS solution",         teacher: "Ms. Sarah", type: "other", severity: "moderate", status: "Monitoring" },
-  { id: 3, childId: "arjun",    child: "Arjun",    date: "Mar 25, 2026", note: "Slightly elevated temp after outdoor play", medicine: "Rest + fluids",        teacher: "Ms. Priya", type: "fever", severity: "mild",     status: "Monitoring" },
-  { id: 4, childId: "rudransh", child: "Rudransh", date: "Mar 25, 2026", note: "Skipped breakfast and lunch today",         medicine: "Monitor appetite",     teacher: "Mr. Rahul", type: "other", severity: "mild",     status: "Active"     },
+  { id: 1, childId: "khushi",   child: "Khushi",   date: "Mar 24, 2026", note: "Mild fever, temp 100.2°F",                  medicine: "Paracetamol (2.5 ml)", teacher: "Mr. Rahul", type: "fever", severity: "critical", status: "Active"     },
+  { id: 2, childId: "aarohi",   child: "Aarohi",   date: "Mar 24, 2026", note: "Dehydration signs, refusing water",         medicine: "ORS solution",         teacher: "Ms. Sarah", type: "other", severity: "moderate", status: "Monitoring" },
+  { id: 3, childId: "arjun",    child: "Arjun",    date: "Mar 24, 2026", note: "Slightly elevated temp after outdoor play", medicine: "Rest + fluids",        teacher: "Ms. Priya", type: "fever", severity: "mild",     status: "Monitoring" },
+  { id: 4, childId: "rudransh", child: "Rudransh", date: "Mar 24, 2026", note: "Skipped breakfast and lunch today",         medicine: "Monitor appetite",     teacher: "Mr. Rahul", type: "other", severity: "mild",     status: "Active"     },
 ];
