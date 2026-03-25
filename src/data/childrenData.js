@@ -46,7 +46,7 @@ export const INIT_CHILDREN = [
     consumed: { breakfast: true, lunch: false, snacks: false },
     health: {
       temperature: { label: "Temperature", icon: "🌡️", value: "100.2 F", ok: false, alert: "Mild fever"          },
-      heartRate:   { label: "Heart Rate",  icon: "💓", value: "96 bpm",  ok: false, alert: "Elevated heart rate"  },
+      heartRate:   { label: "Heart Rate",  icon: "💓", value: "110 bpm",  ok: false, alert: "Elevated due to fever"  },
       energy:      { label: "Energy",      icon: "⚡", value: "Low",      ok: false, alert: "Lethargic"            },
       mood:        { label: "Mood",        icon: "😊", value: "Cranky",   ok: false, alert: "Irritable"            },
       hydration:   { label: "Hydration",   icon: "💧", value: "Good",     ok: true  },
@@ -72,7 +72,7 @@ export const INIT_CHILDREN = [
     consumed: { breakfast: true, lunch: false, snacks: false },
     health: {
       temperature: { label: "Temperature", icon: "🌡️", value: "99.1 F", ok: false, alert: "Elevated temp"        },
-      heartRate:   { label: "Heart Rate",  icon: "💓", value: "96 bpm", ok: false, alert: "Elevated heart rate"  },
+      heartRate:   { label: "Heart Rate",  icon: "💓", value: "100 bpm", ok: false, alert: "Elevated due to fever"  },
       energy:      { label: "Energy",      icon: "⚡", value: "Tired",   ok: false, alert: "Skipped nap"          },
       mood:        { label: "Mood",        icon: "😊", value: "Quiet",   ok: true  },
       hydration:   { label: "Hydration",   icon: "💧", value: "Good",    ok: true  },
