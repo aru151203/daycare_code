@@ -86,7 +86,7 @@ export default function NutritionMedical() {
   // If a child is selected, show their full profile instead of the main dashboard
   if (activeChild) {
     return (
-      <div className="min-h-screen bg-gray-100">
+      <div className="min-h-screen bg-gray-100 ml-60">
         <Header />
         <ChildProfilePage
           child={activeChild}
@@ -102,7 +102,7 @@ export default function NutritionMedical() {
 
   // ── Main Dashboard View ────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gray-100 pb-12">
+    <div className="min-h-screen bg-gray-100 pb-12 ml-60">
       <Header />
 
       {/* Child search bar */}
